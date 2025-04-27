@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Biased-Coin Prediction Game</title>
+  <style>
+    :root { --bg:#222; --fg:#fff; --accent:#ffbf00; --coin:#ffd700; }
+    body{margin:0;padding:2rem;background:var(--bg);color:var(--fg);
+         font:16px/1.4 system-ui, sans-serif;text-align:center}
+    h1{margin-top:0}
+    #cash{font-size:1.6rem;font-weight:700;margin:0 0 1rem;color:#0f0}
+    #coin{width:140px;height:140px;border-radius:50%;background:var(--coin);
+          display:grid;place-content:center;margin:1rem auto;
+          font:64px/1 monospace;color:#222;box-shadow:0 0 8px #0007}
+    label{margin:0 1rem}
+    input[type=number]{width:7rem;text-align:center;padding:.2rem .4rem}
+    button{padding:.45rem 1rem;margin-top:1rem;font-weight:700;
+           border:none;border-radius:4px;background:var(--accent);cursor:pointer}
+    button:active{transform:translateY(1px)}
+    footer{margin-top:2rem;font-size:.8rem;color:#aaa}
+  </style>
+</head>
+<body>
+
+<h1>Biased-Coin Game</h1>
+<h2 id="cash">$100.00</h2>
+
+<div id="coin">?</div>
+
+<div>
+  <label><input type="radio" name="pick" value="Heads" checked> Heads</label>
+  <label><input type="radio" name="pick" value="Tails"> Tails</label>
+</div>
+
+<p>
+  Bet $ <input id="bet" type="number" min="1" step="1" value="10">
+</p>
+
+<button id="flipBtn">Flip&nbsp;!</button>
+
+<footer>Win = +20 % of bet | Lose = −40 % of bet | 60 % Heads, 40 % Tails</footer>
+
+<script>
+  /* ---------------- game parameters ---------------- */
+  const HEADS_PROB = 0.6;      // 60 % heads
+  const GAIN_RATE  = 0.20;     // +20 % on win
+  const LOSS_RATE  = 0.40;     // −40 % on loss
+  /* ------------------------------------------------- */
+
+  let cash = 100;
+
+  const cashLbl = document.getElementById('cash');
+  const coinDiv = document.getElementById('coin');
+  const betInp  = document.getElementById('bet');
+  const flipBtn = document.getElementById('flipBtn');
+
+  function updateCash() {
+    cashLbl.textContent = `$${cash.toFixed(2)}`;
+    cashLbl.style.color = cash > 0 ? '#0f0' : '#f33';
+  }
+
+  function biasedFlip() {
+    return Math.random() < HEADS_PROB ? 'Heads' : 'Tails';
+  }
+
+  function playRound() {
+    const wager = parseFloat(betInp.value);
+    if (isNaN(wager) || wager <= 0) {
+      alert('Enter a positive bet.');
+      return;
+    }
+    if (wager > cash) {
+      alert("You can't bet more than you have!");
+      return;
+    }
+
+    const choice = document.querySelector('[name="pick"]:checked').value;
+    const outcome = biasedFlip();
+    coinDiv.textContent = outcome[0];         // show H or T
+
+    if (choice === outcome) {
+      const win = GAIN_RATE * wager;
+      cash += win;
+      alert(`Correct! You won $${win.toFixed(2)}.`);
+    } else {
+      const loss = LOSS_RATE * wager;
+      cash -= loss;
+      alert(`Wrong guess. You lost $${loss.toFixed(2)}.`);
+    }
+    updateCash();
+
+    if (cash <= 0) {
+      alert('You are out of money! Game over.');
+      flipBtn.disabled = true;
+    }
+  }
+
+  flipBtn.addEventListener('click', playRound);
+</script>
+</body>
+</html>
