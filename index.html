@@ -6,17 +6,19 @@
   <style>
     :root { --bg:#222; --fg:#fff; --accent:#ffbf00; --coin:#ffd700; }
     body{margin:0;padding:2rem;background:var(--bg);color:var(--fg);
-         font:16px/1.4 system-ui, sans-serif;text-align:center}
+         font:16px/1.4 system-ui,sans-serif;text-align:center}
     h1{margin-top:0}
     #cash{font-size:1.6rem;font-weight:700;margin:0 0 1rem;color:#0f0}
     #coin{width:140px;height:140px;border-radius:50%;background:var(--coin);
           display:grid;place-content:center;margin:1rem auto;
           font:64px/1 monospace;color:#222;box-shadow:0 0 8px #0007}
     label{margin:0 1rem}
-    input[type=number]{width:7rem;text-align:center;padding:.2rem .4rem}
-    button{padding:.45rem 1rem;margin-top:1rem;font-weight:700;
-           border:none;border-radius:4px;background:var(--accent);cursor:pointer}
+    input[type=number]{width:7rem;text-align:center;padding:.25rem .4rem}
+    button{padding:.5rem 1.1rem;margin-top:1rem;font-weight:700;border:none;
+           border-radius:4px;background:var(--accent);cursor:pointer}
     button:active{transform:translateY(1px)}
+    #msg{min-height:1.6rem;margin-top:.8rem;font-weight:700}
+    .win{color:#0f0} .loss{color:#f55}
     footer{margin-top:2rem;font-size:.8rem;color:#aaa}
   </style>
 </head>
@@ -38,25 +40,28 @@
 
 <button id="flipBtn">Flip&nbsp;!</button>
 
+<div id="msg"></div>
+
 <footer>Win = +20 % of bet | Lose = −40 % of bet | 60 % Heads, 40 % Tails</footer>
 
 <script>
-  /* ---------------- game parameters ---------------- */
-  const HEADS_PROB = 0.6;      // 60 % heads
-  const GAIN_RATE  = 0.20;     // +20 % on win
-  const LOSS_RATE  = 0.40;     // −40 % on loss
-  /* ------------------------------------------------- */
+  /* ------- parameters ------- */
+  const HEADS_PROB = 0.6;
+  const GAIN_RATE  = 0.20;
+  const LOSS_RATE  = 0.40;
+  /* -------------------------- */
 
   let cash = 100;
 
   const cashLbl = document.getElementById('cash');
   const coinDiv = document.getElementById('coin');
   const betInp  = document.getElementById('bet');
+  const msgDiv  = document.getElementById('msg');
   const flipBtn = document.getElementById('flipBtn');
 
   function updateCash() {
     cashLbl.textContent = `$${cash.toFixed(2)}`;
-    cashLbl.style.color = cash > 0 ? '#0f0' : '#f33';
+    cashLbl.style.color = cash > 0 ? '#0f0' : '#f55';
   }
 
   function biasedFlip() {
@@ -66,31 +71,35 @@
   function playRound() {
     const wager = parseFloat(betInp.value);
     if (isNaN(wager) || wager <= 0) {
-      alert('Enter a positive bet.');
+      msgDiv.textContent = 'Enter a positive bet.'; msgDiv.className = 'loss';
       return;
     }
     if (wager > cash) {
-      alert("You can't bet more than you have!");
+      msgDiv.textContent = "Can't bet more than you have!";
+      msgDiv.className = 'loss';
       return;
     }
 
     const choice = document.querySelector('[name="pick"]:checked').value;
     const outcome = biasedFlip();
-    coinDiv.textContent = outcome[0];         // show H or T
+    coinDiv.textContent = outcome[0];     // H or T
 
     if (choice === outcome) {
       const win = GAIN_RATE * wager;
       cash += win;
-      alert(`Correct! You won $${win.toFixed(2)}.`);
+      msgDiv.textContent = `You win $${win.toFixed(2)}!`;
+      msgDiv.className = 'win';
     } else {
       const loss = LOSS_RATE * wager;
       cash -= loss;
-      alert(`Wrong guess. You lost $${loss.toFixed(2)}.`);
+      msgDiv.textContent = `You lose $${loss.toFixed(2)}.`;
+      msgDiv.className = 'loss';
     }
+
     updateCash();
 
     if (cash <= 0) {
-      alert('You are out of money! Game over.');
+      msgDiv.textContent = 'You are out of money! Game over.';
       flipBtn.disabled = true;
     }
   }
